@@ -2,6 +2,13 @@
 # The du.configure_upload can change this
 upload_api = "/API/resumable"
 
+# Default configurations for the cross-domain deployment
+# The argument `allowed_origins` could be a string or a sequence. It defines
+# a list of allowed origins for the cross-domain access. The configurations
+# in the du.settings could be overrided by passing options of
+# du.configure_upload_flask.
+allowed_origins = '*'
+
 # User configurations:
 # The configuration list is used for storing user-defined configurations.
 # Each item is set by an independent du.configure_upload. The list is
@@ -14,7 +21,8 @@ upload_api = "/API/resumable"
 #         'routes_pathname_prefix': str,
 #         'requests_pathname_prefix': str,
 #         'upload_folder_root': str,
-#         'is_dash': bool
+#         'is_dash': bool,
+#         'allowed_origins': [str],
 #         'upload_component_ids': [str]
 #     },
 #     ...
