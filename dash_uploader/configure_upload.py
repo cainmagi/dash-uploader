@@ -118,10 +118,8 @@ def configure_upload(
     folder,
     use_upload_id=True,
     upload_api=None,
-    remote_addr=None,
     allowed_origins=None,
     http_request_handler=None,
-    upload_component_ids=None,
 ):
     r"""
     Configure the upload APIs for dash app.
@@ -150,12 +148,6 @@ def configure_upload(
         The upload api endpoint to use; the url that is used
         internally for the upload component POST and GET HTTP
         requests. For example: "/API/dash-uploader"
-    remote_addr: None or str
-        The full address of a remote server, including the IP, port and the
-        upload_api.
-        When this value is configured, the upload_api requires to be None.
-        This argument should only be used for creating remote services, because
-        no API would be configured locally when remote_addr is not None.
     allowed_origins: None or str or [str]
         The list of allowed origin(s) for the cross-domain access. If
         set '*', all domains would be allowed. If set None, would use
@@ -167,46 +159,37 @@ def configure_upload(
         If you provide a class, use a subclass of HttpRequestHandler.
         See the documentation of dash_uploader.HttpRequestHandler for
         more details.
-    upload_component_ids: None or str or [str]
-        A list of du.Upload component ids. If set None, this configuration would be
-        regarded as default configurations. If not, the registered app would be
-        configured for the provided components.
     """
     # Check the validity of arguments.
     is_dash = check_app(app)
-    upload_component_ids = check_upload_component_ids(upload_component_ids)
     allowed_origins = check_allowed_origins(allowed_origins)
-    remote_addr = check_remote_addr(remote_addr, upload_api)
+    check_upload_component_ids(None)
 
     # Configure the API. Extra configs are needed if using a proxy for dash app.
-    if remote_addr is not None:  # upload_api is None in this case.
-        service = remote_addr
+    if upload_api is None:
+        upload_api = settings.upload_api
+    if is_dash and upload_api is not None:
+        routes_pathname_prefix = app.config.get("routes_pathname_prefix", "/")
+        requests_pathname_prefix = app.config.get("requests_pathname_prefix", "/")
+        service = update_upload_api(requests_pathname_prefix, upload_api)
+        full_upload_api = update_upload_api(routes_pathname_prefix, upload_api)
     else:
-        if upload_api is None:
-            upload_api = settings.upload_api
-        if is_dash and upload_api is not None:
-            routes_pathname_prefix = app.config.get("routes_pathname_prefix", "/")
-            requests_pathname_prefix = app.config.get("requests_pathname_prefix", "/")
-            service = update_upload_api(requests_pathname_prefix, upload_api)
-            full_upload_api = update_upload_api(routes_pathname_prefix, upload_api)
-        else:
-            service = upload_api
-            full_upload_api = upload_api
+        service = upload_api
+        full_upload_api = upload_api
 
     # Set the request handler.
     if http_request_handler is None:
         http_request_handler = HttpRequestHandler
 
-    if remote_addr is None:  # Should not create APIs when given a remote remote_addr
-        server = app.server if is_dash else app
-        decorate_server(
-            server,
-            folder,
-            full_upload_api,
-            http_request_handler=http_request_handler,
-            allowed_origins=allowed_origins,
-            use_upload_id=use_upload_id,
-        )
+    server = app.server if is_dash else app
+    decorate_server(
+        server,
+        folder,
+        full_upload_api,
+        http_request_handler=http_request_handler,
+        allowed_origins=allowed_origins,
+        use_upload_id=use_upload_id,
+    )
 
     # If no bugs are triggered, would update the user configs.
     # Set the upload api since du.Upload components
@@ -221,6 +204,57 @@ def configure_upload(
             "upload_folder_root": folder,
             "is_dash": is_dash,
             "allowed_origins": allowed_origins,
+        }
+    )
+    # Set the query.
+    settings.user_configs_default = app_idx
+
+
+def configure_remote_upload(
+    app,
+    remote_addr=None,
+    upload_component_ids=None,
+):
+    r"""
+    Configure the upload APIs for connecting to a remote server.
+    This function is required to be called before using du.callback.
+
+    Parameters
+    ---------
+    app: dash.Dash
+        The application instance.
+    remote_addr: None or str
+        The full address of a remote server, including the IP, port and the
+        upload_api.
+        This argument should only be used for creating remote services, because
+        no API would be configured locally when remote_addr is not None.
+    upload_component_ids: None or str or [str]
+        A list of du.Upload component ids. If set None, this configuration would be
+        regarded as default configurations. If not, the registered app would be
+        configured for the provided components.
+    """
+    # Check the validity of arguments.
+    if not isinstance(app, dash.Dash):
+        raise TypeError(
+            'The argument "app" requires to be a dash.Dash instance.'
+        )
+    upload_component_ids = check_upload_component_ids(upload_component_ids)
+    remote_addr = check_remote_addr(remote_addr, None)
+
+    # Configure the API. Extra configs are needed if using a proxy for dash app.
+    service = remote_addr
+
+    # If no bugs are triggered, would update the user configs.
+    # Set the upload api since du.Upload components
+    # that are created after du.configure_upload
+    # need to be able to read the api endpoint.
+    app_idx = len(settings.user_configs)
+    settings.user_configs.append(
+        {
+            "app": app,
+            "service": service,
+            "is_dash": True,
+            "upload_folder_root": "{remote_folder}",
             "upload_component_ids": upload_component_ids,
         }
     )
