@@ -11,6 +11,8 @@ dependencies:
   - flake8
   - packaging>22
   - pytest
+  - importlib-metadata
+  - typing-extensions
   - pip:
       - pyyaml~=6.0
       - selenium~=4.1.0

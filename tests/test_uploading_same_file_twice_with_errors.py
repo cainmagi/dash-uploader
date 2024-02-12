@@ -3,12 +3,12 @@ import shutil
 import threading
 import time
 
-import chromedriver_binary
+import chromedriver_binary  # noqa: F401
 
 from dash.testing.application_runners import import_app
 import pytest
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support.ui import WebDriverWait  # type: ignore
 from selenium.webdriver.support import expected_conditions as EC
 
 
@@ -115,10 +115,10 @@ def test_uploadtwice01_upload_a_file_twice_and_reserve_it(
     upload_file(testfile10kb_csv)
 
     # Wait until file is uploaded (2nd time)
-    # Wait for "Completed: testfile_for_reupload.csv" text, with 6 second timeout
+    # Wait that the callback for the 'testfile_for_reupload.csv' has been fired.
     WebDriverWait(dash_duo._driver, 6).until(
         EC.text_to_be_present_in_element(
-            (By.XPATH, "//div[@id='dash-uploader']/*/label"), testfile10kb_csv.name
+            (By.XPATH, '//*[@id="callback-output"]/ul/li'), testfile10kb_csv.name
         )
     )
 

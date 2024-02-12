@@ -1,7 +1,23 @@
 import uuid
+import itertools
+
+from typing import Union, Optional, Any, TypeVar
+
+try:
+    from typing import Sequence, Mapping, Hashable
+    from typing import Dict
+except ImportError:
+    from collections.abc import Sequence, Mapping, Hashable
+    from builtins import dict as Dict
+
 
 from dash_uploader._build.Upload_ReactComponent import Upload_ReactComponent
 import dash_uploader.settings as settings
+
+
+K = TypeVar("K", bound=Hashable)
+V = TypeVar("V")
+
 
 DEFAULT_STYLE = {
     "width": "100%",
@@ -16,8 +32,9 @@ DEFAULT_STYLE = {
 }
 
 
-def update_upload_api(requests_pathname_prefix, upload_api):
+def update_upload_api(requests_pathname_prefix: str, upload_api: str) -> str:
     """Path join for the API path name.
+
     This is a private method, and should not be exposed to users.
     """
     if requests_pathname_prefix == "/":
@@ -30,34 +47,51 @@ def update_upload_api(requests_pathname_prefix, upload_api):
     )
 
 
-def combine(overiding_dict, base_dict):
+def combine(
+    overiding_dict: Optional[Mapping[K, V]], base_dict: Mapping[K, V]
+) -> Dict[K, V]:
     """Combining two dictionaries without modifying them.
+
     This is a private method, and should not be exposed to users.
     """
     if overiding_dict is None:
         return dict(base_dict)
-    return {**base_dict, **overiding_dict}
+    return dict(itertools.chain(base_dict.items(), overiding_dict.items()))
+
+
+def _query_service_addr(component_id: str) -> str:
+    """Query the service address by the given component id.
+
+    This is a private method, and should not be exposed to users.
+    """
+    app_idx = settings.user_configs_query.get(component_id, None)
+    if app_idx is None and settings.user_configs_default is not None:
+        app_idx = settings.user_configs_default
+    else:
+        app_idx = 0
+    service_addr = settings.user_configs[app_idx]["service"]
+    return service_addr
 
 
 # Implemented as function, but still uppercase.
 # This is because subclassing the Dash-auto-generated
 # "Upload from Upload.py" will give some errors
 def Upload(
-    id="dash-uploader",
-    text="Drag and Drop Here to upload!",
-    text_completed="Uploaded: ",
-    text_disabled="The uploader is disabled.",
-    cancel_button=True,
-    pause_button=False,
-    disabled=False,
-    filetypes=None,
-    max_file_size=1024,
-    max_total_size=5 * 1024,
-    chunk_size=1,
-    default_style=None,
-    upload_id=None,
-    max_files=1,
-):
+    id: str = "dash-uploader",
+    text: str = "Drag and Drop Here to upload!",
+    text_completed: str = "Uploaded: ",
+    text_disabled: str = "The uploader is disabled.",
+    cancel_button: bool = True,
+    pause_button: bool = False,
+    disabled: bool = False,
+    filetypes: Optional[Sequence[str]] = None,
+    max_file_size: int = 1024,
+    max_total_size: int = 5 * 1024,
+    chunk_size: int = 1,
+    default_style: Optional[Mapping[str, str]] = None,
+    upload_id: Optional[Union[str, uuid.UUID]] = None,
+    max_files: int = 1,
+) -> Upload_ReactComponent:
     """
     du.Upload component
 
@@ -140,12 +174,14 @@ def Upload(
     disabled_style = combine({"opacity": "0.5"}, default_style)
     upload_style = combine({"lineHeight": "0px"}, default_style)
 
-    if upload_id is None:
-        upload_id = uuid.uuid1()
+    _upload_id = str(uuid.uuid1() if upload_id is None else upload_id)
 
-    service = update_upload_api(settings.requests_pathname_prefix, settings.upload_api)
+    # service = update_upload_api(
+    #     settings.requests_pathname_prefix, settings.upload_api
+    # )
+    service = _query_service_addr(id)
 
-    arguments = dict(
+    arguments: Dict[str, Any] = dict(
         id=id,
         dashAppCallbackBump=0,
         # Have not tested if using many files
@@ -168,7 +204,7 @@ def Upload(
         disabledStyle=disabled_style,
         uploadingStyle=upload_style,
         completeStyle=default_style,
-        upload_id=str(upload_id),
+        upload_id=_upload_id,
         totalFilesCount=0,
     )
 

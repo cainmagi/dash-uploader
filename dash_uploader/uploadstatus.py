@@ -1,5 +1,14 @@
 from pathlib import Path
+import os
 import warnings
+
+
+from typing import Union, Optional
+
+try:
+    from typing import Sequence
+except ImportError:
+    from collections.abc import Sequence
 
 
 class UploadStatus:
@@ -26,11 +35,11 @@ class UploadStatus:
 
     def __init__(
         self,
-        uploaded_files,
-        n_total,
-        uploaded_size_mb,
-        total_size_mb,
-        upload_id=None,
+        uploaded_files: Sequence[Union[str, os.PathLike]],
+        n_total: int,
+        uploaded_size_mb: float,
+        total_size_mb: float,
+        upload_id: Optional[str] = None,
     ):
         """
         Parameters
@@ -59,7 +68,8 @@ class UploadStatus:
         self.is_completed = self.n_uploaded == n_total
         if self.n_uploaded > n_total:
             warnings.warn(
-                "Initializing UploadStatus with n_uploaded > n_total. This should not be happening"
+                "Initializing UploadStatus with n_uploaded > n_total. This should "
+                "not be happening"
             )
 
         self.uploaded_size_mb = uploaded_size_mb

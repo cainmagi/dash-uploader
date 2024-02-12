@@ -1,15 +1,33 @@
 import logging
-from typing import final
 from packaging import version
-import pkg_resources
 import time
+import functools
 
-## Dash version
-dash_version_str = pkg_resources.get_distribution("dash").version
+from typing import TypeVar, cast
+
+try:
+    from typing import Callable
+except ImportError:
+    from collections.abc import Callable
+
+
+_Callable = TypeVar("_Callable", bound=Callable)
+T = TypeVar("T")
+
+
+# Dash version
+try:
+    import importlib.metadata
+
+    dash_version_str = importlib.metadata.version("dash")
+except (ImportError, ModuleNotFoundError):
+    import pkg_resources
+
+    dash_version_str = pkg_resources.get_distribution("dash").version
 dash_version = version.parse(dash_version_str)
 
 
-def dash_version_is_at_least(req_version="1.12"):
+def dash_version_is_at_least(req_version: str = "1.12") -> bool:
     """Check that the used version of dash is greater or equal
     to some version `req_version`.
 
@@ -20,7 +38,7 @@ def dash_version_is_at_least(req_version="1.12"):
     return dash_version >= version.parse(req_version)
 
 
-def retry(wait_time, max_time):
+def retry(wait_time: float, max_time: float):
     """
     decorator to call a function until success
 
@@ -32,7 +50,8 @@ def retry(wait_time, max_time):
         Maximum time to wait
     """
 
-    def add_callback(function):
+    def add_callback(function: _Callable) -> _Callable:
+        @functools.wraps(function)
         def wrapper(*args, **kwargs):
             t0 = time.time()
             i = 1
@@ -55,6 +74,6 @@ def retry(wait_time, max_time):
                     i += 1
             return out
 
-        return wrapper
+        return cast(_Callable, wrapper)
 
     return add_callback

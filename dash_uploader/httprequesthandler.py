@@ -5,6 +5,10 @@ import shutil
 import time
 import traceback
 
+from typing import Union
+from typing_extensions import Literal, Protocol
+
+import flask
 from flask import request
 from flask import abort
 
@@ -13,19 +17,37 @@ from dash_uploader.utils import retry
 logger = logging.getLogger(__name__)
 
 
-def get_chunk_name(uploaded_filename, chunk_number):
+def get_chunk_name(uploaded_filename: str, chunk_number: int) -> str:
     return f"{uploaded_filename}_part_{chunk_number}"
 
 
-def remove_file(file):
+def remove_file(file: Union[str, os.PathLike]):
     os.unlink(file)
+
+
+class GenericRequestHandler(Protocol):
+    """The protocol for passing a customized request handler.
+
+    The initialization values need to be configured according to the arguments of
+    `BaseHttpRequestHandler`.
+
+    Only the `get() -> "OK" | None` and `post() -> str | None` methods are required.
+    """
+
+    def __init__(
+        self, server: flask.Flask, upload_folder: str, use_upload_id: bool
+    ): ...
+
+    def post(self) -> str: ...
+
+    def get(self) -> Literal["OK"]: ...
 
 
 class RequestData:
     # A helper class that contains data from the request
     # parsed into handier form.
 
-    def __init__(self, request):
+    def __init__(self, request: flask.Request) -> None:
         """
         Parameters
         ----------
@@ -83,8 +105,9 @@ class BaseHttpRequestHandler:
     def post(self):
         try:
             return self._post()
-        except Exception:
+        except Exception as exc:
             logger.error(traceback.format_exc())
+            raise exc
 
     def _post(self):
 
@@ -100,6 +123,7 @@ class BaseHttpRequestHandler:
         # save the chunk data
         chunk_name = get_chunk_name(r.filename, r.chunk_number)
         chunk_file = temporary_folder_for_file_chunks / chunk_name
+        n_chunks_total = r.n_chunks_total if r.n_chunks_total else 0
 
         # make a lock file
         lock_file_path = temporary_folder_for_file_chunks / f".lock_{r.chunk_number}"
@@ -115,7 +139,7 @@ class BaseHttpRequestHandler:
             os.path.join(
                 temporary_folder_for_file_chunks, get_chunk_name(r.filename, x)
             )
-            for x in range(1, r.n_chunks_total + 1)
+            for x in range(1, n_chunks_total + 1)
         ]
         upload_complete = all([os.path.exists(p) for p in chunk_paths])
 
@@ -132,7 +156,7 @@ class BaseHttpRequestHandler:
                             temporary_folder_for_file_chunks, ".lock_{:d}".format(chunk)
                         )
                     )
-                    for chunk in range(1, r.n_chunks_total + 1)
+                    for chunk in range(1, n_chunks_total + 1)
                 ]
             ):
                 tried += 1
@@ -143,7 +167,7 @@ class BaseHttpRequestHandler:
                     )
                     raise Exception(
                         "Error uploading files with temporary_folder_for_file_chunks: "
-                        + temporary_folder_for_file_chunks
+                        "{0}".format(temporary_folder_for_file_chunks)
                     )
                 time.sleep(1)
 
@@ -165,8 +189,9 @@ class BaseHttpRequestHandler:
     def get(self):
         try:
             return self._get()
-        except Exception:
+        except Exception as exc:
             logger.error(traceback.format_exc())
+            raise exc
 
     def _get(self):
         # flow.js uses a GET request to check if it uploaded the file already.

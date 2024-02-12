@@ -11,7 +11,7 @@ import warnings
 
 from selenium.common.exceptions import SessionNotCreatedException
 from selenium import webdriver
-import chromedriver_binary  # Adds chromedriver binary to path
+import chromedriver_binary  # noqa: F401; Adds chromedriver binary to path
 
 
 OLD_CHROMEDRIVER_ERROR_MSG = """

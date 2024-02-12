@@ -3,6 +3,7 @@ The test file used for checking the following properties:
    - disabled
    - disableDragAndDrop
 """
+
 import json
 from pathlib import Path
 import shutil
@@ -11,12 +12,12 @@ import chromedriver_binary  # noqa: F401
 from dash.testing.application_runners import import_app
 import pytest
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support.ui import WebDriverWait  # type: ignore
 from selenium.webdriver.support import expected_conditions as EC
 
 from selenium.common.exceptions import TimeoutException
 
-from .utils import create_file, load_text_file, expect_alert
+from .utils import create_file, load_text_file, expect_alert  # noqa: F401
 
 # NOTE: Here are some notes for testing
 # Naming convention: test_{tcid}_{test title}

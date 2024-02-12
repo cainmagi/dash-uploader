@@ -1,6 +1,7 @@
 """
 Test app used by test_disabled.
 """
+
 import uuid
 import json
 

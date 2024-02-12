@@ -2,16 +2,16 @@
 from pathlib import Path
 import shutil
 
-import chromedriver_binary
+import chromedriver_binary  # noqa: F401
 from dash.testing.application_runners import import_app
 import pytest
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support.ui import WebDriverWait  # type: ignore
 from selenium.webdriver.support import expected_conditions as EC
 
 from .utils import create_file
 
-## NOTE: Here are some notes for testing
+# NOTE: Here are some notes for testing
 # Naming convention: test_{tcid}_{test title}
 # Running just one tcid: python -m pytest -k {tcid}
 # General guide: https://dash.plotly.com/testing
@@ -60,7 +60,7 @@ def test_upload01_upload_a_file(dash_duo, testfile10Mb_csv):
     upload_input.send_keys(str(testfile10Mb_csv))
     # Wait until file is uploaded
 
-    upload_label = upload.find_element(By.XPATH, "//label")
+    upload_label = upload.find_element(By.XPATH, "//label")  # noqa: F841
 
     # Wait for "Completed" text, with 10 second timeout
     wait = WebDriverWait(dash_duo._driver, 10)

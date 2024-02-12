@@ -4,6 +4,20 @@
 
 This version is developed internally for RDash.
 
+### Update 2 (2024-02-12)
+
+#### Added
+
+- Add configuration files for `flake8` and `pyright`.
+- Support the cross-domain multi-services features for using this package with `rdash`.
+- Add typehints for all package codes (testing codes are not fully hinted).
+  
+#### Fixed
+
+- Fix few high-priority typing issues in the testing codes.
+- Prefer the new `importlib.metadata` rather than the deprecated `pkg_resources`.
+- Use the new `black=24.1.1` to reformat the whole package, including the testing codes.
+
 ### Update 1 (2024-02-12)
 
 #### Added

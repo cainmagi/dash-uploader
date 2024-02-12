@@ -1,8 +1,13 @@
-from selenium.webdriver.support.ui import WebDriverWait
+import os
+
+from typing import Union
+
+from selenium.webdriver.webkitgtk.webdriver import WebDriver
+from selenium.webdriver.support.ui import WebDriverWait  # type: ignore
 from selenium.webdriver.support import expected_conditions as EC
 
 
-def expect_alert(driver, text, timeout=4):
+def expect_alert(driver: WebDriver, text: str, timeout: float = 4) -> None:
     """
     Expect an alert in the browser.
 
@@ -27,7 +32,7 @@ def expect_alert(driver, text, timeout=4):
     alert.accept()
 
 
-def create_file(filename, filesize_mb=1):
+def create_file(filename: Union[str, os.PathLike], filesize_mb: float = 1) -> None:
     """
     Create file for testing purposes.
 
@@ -43,7 +48,7 @@ def create_file(filename, filesize_mb=1):
         f.write(b"0")
 
 
-def load_text_file(file_path):
+def load_text_file(file_path: Union[str, os.PathLike]) -> str:
     """
     Load text file from the path
 

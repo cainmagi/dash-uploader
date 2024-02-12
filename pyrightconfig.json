@@ -1,0 +1,21 @@
+{
+    "exclude": [
+        "alpha-*",
+        "data-*",
+        "docs",
+        "assets",
+        "logs",
+        "outputs",
+        "tests/js",
+        "src",
+        ".VSCodeCounter",
+        ".github",
+        ".git",
+        "**/.yarn",
+        "**/node_modules",
+        "**/__pycache__",
+        "typestubs"
+    ],
+    "reportMissingImports": true,
+    "reportMissingTypeStubs": false,
+}
