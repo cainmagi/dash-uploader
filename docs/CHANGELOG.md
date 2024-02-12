@@ -1,5 +1,22 @@
 # Changelog
 
+## For-RDash-Experimental (v2)
+
+This version is developed internally for RDash.
+
+### Update 1 (2024-02-12)
+
+#### Added
+
+- Provide docker scripts for isolating the building environment.
+- Provide a conda environment file.
+- Support SCSS style files.
+- Support `yarn-v4.x.x` APIs. (Use `yarn install` and `yarn build` to replace `npm`).
+
+#### Changed
+
+- Make all bootstrap styles moved to the subspace: `dash-uploader-container` to avoid css-style leakage.
+
 ## 0.7.0-a1 (2022-03-30)
 
 - This pre-release is available in PyPI with `--pre` flag.

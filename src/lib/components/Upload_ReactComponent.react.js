@@ -10,8 +10,8 @@ import Flow from '@flowjs/flow.js';
 import Button from './Button.react.js';
 import ProgressBar from './ProgressBar.react.js'
 import PropTypes from 'prop-types';
-import './progressbar.css';
-import './button.css';
+import './progressbar.scss';
+import './button.scss';
 import './uploader.css';
 
 
@@ -493,20 +493,22 @@ export default class Upload_ReactComponent extends Component {
 
 
         return (
-            <div style={getStyle()} id={this.props.id} className={getClass()} ref={node => this.dropZone = node} >
-                <div id={this.props.id + '-padding'}
-                    style={{
-                        padding: '10px',
-                    }}>
-                    {this.getLabel()}
-                    <ProgressBar isUploading={this.state.isUploading} progressBar={this.state.progressBar}></ProgressBar>
-                    <div className='dash-uploader-button-container'>
-                        {cancelButton}
-                        {pauseButton}
-                        {startButton}
+            <div className="dash-uploader-container">
+                <div style={getStyle()} id={this.props.id} className={getClass()} ref={node => this.dropZone = node} >
+                    <div id={this.props.id + '-padding'}
+                        style={{
+                            padding: '10px',
+                        }}>
+                        {this.getLabel()}
+                        <ProgressBar isUploading={this.state.isUploading} progressBar={this.state.progressBar}></ProgressBar>
+                        <div className='dash-uploader-button-container'>
+                            {cancelButton}
+                            {pauseButton}
+                            {startButton}
+                        </div>
                     </div>
                 </div>
-            </div >
+            </div>
         );
     }
 }

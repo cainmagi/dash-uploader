@@ -7,6 +7,7 @@ The progressbar code is taken originally from the Bootstrap package
  * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
  */
 
+.dash-uploader-container {
  .progress {
     display: -ms-flexbox;
     display: flex;
@@ -68,3 +69,4 @@ The progressbar code is taken originally from the Bootstrap package
     -webkit-animation: progress-bar-stripes 1s linear infinite;
     animation: progress-bar-stripes 1s linear infinite;
   }
+}

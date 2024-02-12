@@ -74,6 +74,13 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Yarn temp file
+/.pnp.cjs
+/.pnp.loader.mjs
+/yarn.lock
+/.yarn
+/_package-lock.json
+
 # Runtime data
 pids
 *.pid

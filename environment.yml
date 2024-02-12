@@ -1,0 +1,20 @@
+name: dash-uploader
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - nodejs
+  - yarn
+  - python=3.9
+  - pip
+  - black
+  - flake8
+  - packaging>22
+  - pytest
+  - pip:
+      - pyyaml~=6.0
+      - selenium~=4.1.0
+      - dash[testing]>=1.1.0
+      - chromedriver-binary==121.*
+      - Werkzeug~=2.0.3
+      - kaleido==0.2.1; sys_platform == 'linux'

@@ -8,7 +8,7 @@ Button related css from bootstrap
  */
 
 
-
+.dash-uploader-container {
  .btn {
     display: inline-block;
     font-weight: 400;
@@ -719,14 +719,15 @@ Button related css from bootstrap
   }
   
 
-/* dash-uploader specific */
-/*  These override anything defined above */
-.btn-dash-uploader {
-  line-height: 1.0;
-  height: 2.3em;
-  font-size: 9px;
-  text-transform: uppercase;
-  font-family: Arial, Helvetica, sans-serif;
-  float: right !important;
-  margin-left: 4px;
+  /* dash-uploader specific */
+  /*  These override anything defined above */
+  .btn-dash-uploader {
+    line-height: 1.0;
+    height: 2.3em;
+    font-size: 9px;
+    text-transform: uppercase;
+    font-family: Arial, Helvetica, sans-serif;
+    float: right !important;
+    margin-left: 4px;
+  }
 }
