@@ -17,6 +17,8 @@ This version is developed internally for RDash.
 - Fix few high-priority typing issues in the testing codes.
 - Prefer the new `importlib.metadata` rather than the deprecated `pkg_resources`.
 - Use the new `black=24.1.1` to reformat the whole package, including the testing codes.
+- Fix a case when the component id is incorrectly split into characters.
+- Reduce the confusion by removing `upload_folder_root` when working on the remote mode.
 
 ### Update 1 (2024-02-12)
 

@@ -77,7 +77,9 @@ def check_upload_component_ids(
     valid_ids = None
     if isinstance(upload_component_ids, str) and upload_component_ids != "":
         valid_ids = (upload_component_ids,)
-    if isinstance(upload_component_ids, collections.abc.Sequence):
+    elif (not isinstance(upload_component_ids, str)) and isinstance(
+        upload_component_ids, collections.abc.Sequence
+    ):
         if all(
             map(lambda uid: isinstance(uid, str) and uid != "", upload_component_ids)
         ):
@@ -305,7 +307,7 @@ def configure_remote_upload(
             requests_pathname_prefix="",
             is_dash=True,
             allowed_origins="",
-            upload_folder_root="{remote_folder}",
+            upload_folder_root="",
             upload_component_ids=upload_component_ids,
         )
     )
