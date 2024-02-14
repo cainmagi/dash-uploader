@@ -16,10 +16,10 @@ import dash
 import flask
 import flask.views
 
-import dash_uploader.settings as settings
-from dash_uploader.upload import update_upload_api
-from dash_uploader.httprequesthandler import HttpRequestHandler, GenericRequestHandler
-from dash_uploader.fixture import cross_domain
+from . import settings
+from .upload import update_upload_api
+from .httprequesthandler import HttpRequestHandler, GenericRequestHandler
+from .fixture import cross_domain
 
 
 logger = logging.getLogger("dash_uploader")
@@ -266,7 +266,7 @@ def configure_remote_upload(
     remote_addr: str,
     upload_component_ids: Union[Sequence[str], str, None] = None,
 ):
-    r"""
+    R"""
     Configure the upload APIs for connecting to a remote server.
     This function is required to be called before using du.callback.
     Parameters
@@ -363,31 +363,20 @@ def decorate_server(
         server, upload_folder=temp_base, use_upload_id=use_upload_id
     )
 
-    # def get(
-    #     *args, **kwargs
-    # ):  # The two wrappers are required, because we need to modify the attributes of the function.
-    #     return handler.get(*args, **kwargs)
-
-    # def post(*args, **kwargs):
-    #     return handler.post(*args, **kwargs)
-
+    @cross_domain(methods=["GET", "POST"], origin=allowed_origins)
     class Service(flask.views.MethodView):
-        @cross_domain(methods=["GET"], origin=allowed_origins)
-        def get(self, *args, **kwargs):
-            return handler.get(*args, **kwargs)
+        init_every_request = False
 
-        @cross_domain(methods=["POST"], origin=allowed_origins)
-        def post(self, *args, **kwargs):
-            return handler.post(*args, **kwargs)
+        def get(self):
+            return handler.get()
+
+        def post(self):
+            return handler.post()
 
     end_point = upload_api.lstrip("/").replace("/", ".")
     server.add_url_rule(
         upload_api,
         end_point,
         Service.as_view("View.du.{0}".format(end_point)),
-        provide_automatic_options=False,
-        methods=["GET", "POST"],
+        methods=["GET", "POST", "OPTIONS"],
     )
-
-    # server.add_url_rule(upload_api, None, handler.get, methods=["GET"])
-    # server.add_url_rule(upload_api, None, handler.post, methods=["POST"])

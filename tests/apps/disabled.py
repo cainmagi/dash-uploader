@@ -19,7 +19,7 @@ from dash.exceptions import PreventUpdate
 
 app = dash.Dash(__name__)
 
-UPLOAD_FOLDER_ROOT = r"C:\tmp\Uploads"
+UPLOAD_FOLDER_ROOT = R"C:\tmp\Uploads"
 du.configure_upload(app, UPLOAD_FOLDER_ROOT)
 
 
@@ -92,7 +92,7 @@ app.layout = get_app_layout
     id="dash-uploader",
 )
 def callback_on_completion(status: du.UploadStatus):
-    return html.Ul([html.Li(str(x)) for x in status.uploaded_files])
+    return html.Ul([html.Li(str(x)) for x in status["uploaded_files"]])
 
 
 @app.callback(Output("dash-uploader", "disabled"), [Input("uploader-configs", "value")])

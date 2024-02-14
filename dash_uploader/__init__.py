@@ -4,12 +4,17 @@ import json
 
 import dash as _dash
 
-from dash_uploader import utils
-from dash_uploader.configure_upload import configure_upload, configure_remote_upload
-from dash_uploader.callbacks import callback
-from dash_uploader.httprequesthandler import HttpRequestHandler
-from dash_uploader.upload import Upload
-from dash_uploader.uploadstatus import UploadStatus
+from . import utils
+from . import settings
+from . import uploadstatus
+from . import fixture
+from . import upload
+from . import httprequesthandler
+from .configure_upload import configure_upload, configure_remote_upload
+from .callbacks import callback
+from .httprequesthandler import HttpRequestHandler
+from .upload import Upload
+from .uploadstatus import UploadStatus, UploadStatusLegacy
 
 # noinspection PyUnresolvedReferences
 from ._build._imports_ import *  # noqa: F403,F401
@@ -18,12 +23,18 @@ from ._build._imports_ import __all__ as build_all
 # Defines all exposed APIs of this package.
 __all__ = [
     "utils",
+    "settings",
+    "uploadstatus",
+    "fixture",
+    "upload",
+    "httprequesthandler",
     "configure_upload",
     "configure_remote_upload",
     "callback",
     "HttpRequestHandler",
     "Upload",
     "UploadStatus",
+    "UploadStatusLegacy",
 ]
 
 if not hasattr(_dash, "development"):

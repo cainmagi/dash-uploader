@@ -419,7 +419,11 @@ export default class Upload_ReactComponent extends Component {
                 type="file"
                 className='btn'
                 name={this.props.id + '-upload'}
-                accept={this.props.filetypes || '*'}
+                accept={
+                    this.props.filetypes ? this.props.filetypes.map(
+                        val => `.${val}`
+                    ) : '*'
+                }
                 disabled={this.state.isUploading || this.props.disabled}
                 style={{
                     'opacity': '0',

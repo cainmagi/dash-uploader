@@ -7,13 +7,15 @@ try:
 except ImportError:
     from collections.abc import Sequence, Callable
 
+import flask.views
 from flask import current_app, make_response, request
 from functools import wraps
 
-import dash_uploader.settings as settings
+from . import settings
 
 
 _Callable = TypeVar("_Callable", bound=Callable)
+_Response = TypeVar("_Response", bound=flask.Response)
 
 
 def cross_domain(
@@ -85,27 +87,96 @@ def cross_domain(
         options_resp = current_app.make_default_options_response()
         return options_resp.headers["allow"]
 
+    def configure_resp(resp: _Response) -> _Response:
+        h = resp.headers
+        h["Access-Control-Allow-Origin"] = origin
+        h["Access-Control-Allow-Methods"] = get_methods()
+        h["Access-Control-Max-Age"] = str(max_age)
+        if _headers is not None:
+            h["Access-Control-Allow-Headers"] = _headers
+        return resp
+
     def decorator(func: _Callable) -> _Callable:
-        @wraps(func)
-        def wrapped_function(*args, **kwargs):
-            if automatic_options and request.method == "OPTIONS":
-                resp = current_app.make_default_options_response()
+        if isinstance(func, type) and issubclass(func, flask.views.View):
+
+            if issubclass(func, flask.views.MethodView):
+
+                def wrap_plain(_func):
+                    @wraps(_func)
+                    def _wrapped(*args, **kwargs):
+                        resp = make_response(_func(*args, **kwargs))
+                        if not attach_to_all and request.method != "OPTIONS":
+                            return resp
+                        return configure_resp(resp)
+
+                    return _wrapped
+
+                func_sub_methods = dict()
+                for m_name in ("get", "post"):
+                    mtd = getattr(func, m_name, None)
+                    if mtd is not None:
+                        func_sub_methods[m_name] = wrap_plain(mtd)
+
+                if automatic_options:
+
+                    def method_option(self):
+                        resp = current_app.make_default_options_response()
+                        return configure_resp(resp)
+
+                    func_sub_methods["options"] = method_option
+
+                func_sub = type(func.__name__, (func,), func_sub_methods)
+                return cast(_Callable, func_sub)
+
             else:
-                resp = make_response(func(*args, **kwargs))
-            if not attach_to_all and request.method != "OPTIONS":
-                return resp
 
-            h = resp.headers
+                def wrap_dispatch(_func):
+                    @wraps(_func)
+                    def _wrapped(*args, **kwargs):
+                        if automatic_options and request.method == "OPTIONS":
+                            resp = current_app.make_default_options_response()
+                        else:
+                            resp = make_response(_func(*args, **kwargs))
+                        if not attach_to_all and request.method != "OPTIONS":
+                            return resp
+                        return configure_resp(resp)
 
-            h["Access-Control-Allow-Origin"] = origin
-            h["Access-Control-Allow-Methods"] = get_methods()
-            h["Access-Control-Max-Age"] = str(max_age)
-            if _headers is not None:
-                h["Access-Control-Allow-Headers"] = _headers
-            return resp
+                    return _wrapped
 
-        func.provide_automatic_options = False
-        setattr(wrapped_function, "provide_automatic_options", False)
-        return cast(_Callable, wrapped_function)
+                func_sub_methods = dict()
+                mtd = getattr(func, "dispatch_request", None)
+                if mtd is not None:
+                    func_sub_methods["dispatch_request"] = wrap_dispatch(mtd)
+                else:
+
+                    def _dispatch_request(self): ...
+
+                    func_sub_methods["dispatch_request"] = wrap_dispatch(
+                        _dispatch_request
+                    )
+                func_sub = type(func.__name__, (func,), func_sub_methods)
+                return cast(_Callable, func_sub)
+
+        elif callable(func):
+
+            @wraps(func)
+            def wrapped_function(*args, **kwargs):
+                if automatic_options and request.method == "OPTIONS":
+                    resp = current_app.make_default_options_response()
+                else:
+                    resp = make_response(func(*args, **kwargs))
+                if not attach_to_all and request.method != "OPTIONS":
+                    return resp
+                return configure_resp(resp)
+
+            func.provide_automatic_options = False
+            setattr(wrapped_function, "provide_automatic_options", False)
+            return cast(_Callable, wrapped_function)
+
+        else:
+            raise TypeError(
+                "Cannot recognized the value to be decorated. It needs to "
+                "be a `flask.view` or a function."
+            )
 
     return decorator

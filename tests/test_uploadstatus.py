@@ -4,7 +4,7 @@ from pathlib import Path
 
 def test_uploadstatus_creation_and_serialization():
 
-    status = du.UploadStatus(
+    status = du.UploadStatusLegacy(
         uploaded_files=[
             Path(r"C:\somepath\some-upload-id\file.csv"),
             Path(r"C:\somepath\some-upload-id\another-file.csv"),
@@ -13,10 +13,10 @@ def test_uploadstatus_creation_and_serialization():
         uploaded_size_mb=51,
         total_size_mb=100,
         upload_id="some-upload-id",
-    )
-    assert status.is_completed is False
-    assert status.progress == 0.51
-    assert str(status.latest_file) == R"C:\somepath\some-upload-id\another-file.csv"
-    assert status.upload_id == "some-upload-id"
-    assert status.n_uploaded == 2
-    assert status.n_total == 5
+    ).to_dict()
+    assert status["is_completed"] is False
+    assert status["progress"] == 0.51
+    assert str(status["latest_file"]) == R"C:\somepath\some-upload-id\another-file.csv"
+    assert status["upload_id"] == "some-upload-id"
+    assert status["n_uploaded"] == 2
+    assert status["n_total"] == 5

@@ -1,6 +1,7 @@
 from pathlib import Path
+import collections.abc
 
-from typing import Union, Optional, TypeVar
+from typing import Union, Optional, Any, TypeVar, TYPE_CHECKING
 
 try:
     from typing import Sequence, Callable
@@ -9,19 +10,33 @@ except ImportError:
     from collections.abc import Sequence, Callable
     from builtins import tuple as Tuple
 
+from typing_extensions import Concatenate, ParamSpec, overload
+
 import flask
 import dash
 
 from dash.exceptions import PreventUpdate
 from dash.dependencies import Input, State, Output
 
-import dash_uploader.settings as settings
-from dash_uploader.uploadstatus import UploadStatus
-from dash_uploader.utils import dash_version_is_at_least
+from . import settings
+from .uploadstatus import UploadStatus, UploadStatusLegacy
+from .utils import dash_version_is_at_least
 
 
+P = ParamSpec("P")
 T = TypeVar("T")
-_Callable = TypeVar("_Callable", bound=Callable)
+if TYPE_CHECKING:
+    # This usage is for compatiblity of a bug caused by typing_extensions, see:
+    # https://github.com/python/typing_extensions/issues/48
+    _CallableUploadStatus = TypeVar(
+        "_CallableUploadStatus",
+        bound=Union[
+            Callable[Concatenate[UploadStatus, ...], Any],
+            Callable[[UploadStatus], Any],
+        ],
+    )
+else:
+    _CallableUploadStatus = TypeVar("_CallableUploadStatus", bound=Callable[..., Any])
 
 
 def _query_app_and_root(component_id: str) -> Tuple[Union[flask.Flask, dash.Dash], str]:
@@ -45,7 +60,29 @@ def _query_app_and_root(component_id: str) -> Tuple[Union[flask.Flask, dash.Dash
     return app, upload_folder_root
 
 
-def _create_dash_callback(callback: Callable[[UploadStatus], T], app_root_folder: str):
+@overload
+def _create_dash_callback(
+    callback: Callable[[UploadStatus], T], app_root_folder: str
+) -> Callable[[bool, Sequence[str], int, float, float, Optional[str]], T]: ...
+
+
+@overload
+def _create_dash_callback(
+    callback: Callable[Concatenate[UploadStatus, P], T], app_root_folder: str
+) -> Callable[
+    Concatenate[bool, Sequence[str], int, float, float, Optional[str], P], T
+]: ...
+
+
+def _create_dash_callback(
+    callback: Union[
+        Callable[[UploadStatus], T], Callable[Concatenate[UploadStatus, P], T]
+    ],
+    app_root_folder: str,
+) -> Union[
+    Callable[[bool, Sequence[str], int, float, float, Optional[str]], T],
+    Callable[Concatenate[bool, Sequence[str], int, float, float, Optional[str], P], T],
+]:
     """Wrap the dash callback the `upload_folder_root`.
 
     This function could be used as a wrapper. It will add the
@@ -59,6 +96,8 @@ def _create_dash_callback(callback: Callable[[UploadStatus], T], app_root_folder
         uploaded_files_size: float,
         total_files_size: float,
         upload_id: Optional[str],
+        *args: P.args,
+        **kwargs: P.kwargs,
     ) -> T:
         if not callbackbump:
             raise PreventUpdate()
@@ -74,14 +113,14 @@ def _create_dash_callback(callback: Callable[[UploadStatus], T], app_root_folder
                 file = root_folder / filename
                 uploadedfilepaths.append(str(file))
 
-        status = UploadStatus(
+        status = UploadStatusLegacy(
             uploaded_files=uploadedfilepaths,
             n_total=total_files_count,
             uploaded_size_mb=uploaded_files_size,
             total_size_mb=total_files_size,
             upload_id=upload_id,
-        )
-        return callback(status)
+        ).to_dict()
+        return callback(status, *args, **kwargs)
 
     return wrapper
 
@@ -89,6 +128,7 @@ def _create_dash_callback(callback: Callable[[UploadStatus], T], app_root_folder
 def callback(
     output: Output,
     id: str = "dash-uploader",
+    states: Union[State, Sequence[State], None] = None,
     prevent_initial_call: Optional[bool] = None,
 ):
     """
@@ -102,7 +142,9 @@ def callback(
         The output dash component
     id: str
         The id of the du.Upload component.
-    prevent_initial_call: bool
+    states: dash State | [State] | None
+        A list of the dash state components.
+    prevent_initial_call: bool | None
         The optional argument `prevent_initial_call`
         is supported since dash v1.12.0. When set
         True, it will cause the callback not to fire
@@ -129,7 +171,7 @@ def callback(
 
     app, upload_folder_root = _query_app_and_root(id)
 
-    def add_callback(function: _Callable) -> _Callable:
+    def add_callback(function: _CallableUploadStatus) -> _CallableUploadStatus:
         """
         Parameters
         ---------
@@ -175,17 +217,22 @@ def callback(
         # State: Pass along extra values without firing the callbacks.
         #
         # See also: https://dash.plotly.com/basic-callbacks
+
+        states_ = [
+            State(id, "uploadedFileNames"),
+            State(id, "totalFilesCount"),
+            State(id, "uploadedFilesSize"),
+            State(id, "totalFilesSize"),
+            State(id, "upload_id"),
+        ]
+        if states is not None:
+            if isinstance(states, collections.abc.Sequence):
+                states_.extend(state for state in states if isinstance(state, State))
+            elif isinstance(states, State):
+                states_.append(states)
+
         dash_callback = app.callback(
-            output,
-            [Input(id, "dashAppCallbackBump")],
-            [
-                State(id, "uploadedFileNames"),
-                State(id, "totalFilesCount"),
-                State(id, "uploadedFilesSize"),
-                State(id, "totalFilesSize"),
-                State(id, "upload_id"),
-            ],
-            **kwargs
+            output, [Input(id, "dashAppCallbackBump")], states_, **kwargs
         )(dash_callback)
 
         return function

@@ -12,7 +12,7 @@ import flask
 from flask import request
 from flask import abort
 
-from dash_uploader.utils import retry
+from .utils import retry
 
 logger = logging.getLogger(__name__)
 

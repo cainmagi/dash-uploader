@@ -11,8 +11,8 @@ except ImportError:
     from builtins import dict as Dict
 
 
-from dash_uploader._build.Upload_ReactComponent import Upload_ReactComponent
-import dash_uploader.settings as settings
+from ._build._imports_ import Upload_ReactComponent
+from . import settings
 
 
 K = TypeVar("K", bound=Hashable)

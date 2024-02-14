@@ -4,6 +4,28 @@
 
 This version is developed internally for RDash.
 
+### Update 3 (2024-02-13)
+
+#### Added
+
+- Enhance `.fixture.cross_domain` for improving the efficiency by `flask.views`.
+- Make `du.callback` supports extra states.
+- Improve the quality of the Dockerfile and the related installation scripts.
+  The docker script is compatible with the plain python image now.
+
+#### Fixed
+
+- Cross-domain does not work in the previous version. Now the issue has been fixed.
+- The typehints for the callback decorator `du.callback` is not correct.
+- Specifying the `filetype` should influence the accept type of the component.
+
+#### Changed
+
+- Change `uploadstatus.UploadStatus` from an object to a typed dictionary. This change
+  make the usage of the callbacks altered.
+- Make all modules imported relatively rather than absolutely.
+- Provide more `pyright` exclusions.
+
 ### Update 2 (2024-02-12)
 
 #### Added

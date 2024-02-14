@@ -28,7 +28,8 @@ function nvm_has {
     type "$1" > /dev/null 2>&1
 }
 
-msg "Dash Uploader experimental environment."
-
-exec bash
-exit 0
+if ! nvm_has "yarn"; then
+    corepack enable || fail
+fi
+yarn set version stable || fail
+yarn install || fail

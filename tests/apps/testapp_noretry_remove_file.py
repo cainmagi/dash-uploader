@@ -11,7 +11,7 @@ else:
 from dash.dependencies import Output
 from dash_uploader.httprequesthandler import HttpRequestHandler, remove_file
 
-UPLOAD_FOLDER_ROOT = r"C:\tmp\Uploads"
+UPLOAD_FOLDER_ROOT = R"C:\tmp\Uploads"
 app = dash.Dash(__name__)
 
 # A special version of HttpRequestHandler where
@@ -80,7 +80,7 @@ app.layout = get_app_layout
 )
 def callback_on_completion(status: du.UploadStatus):
     print(status)
-    return html.Ul([html.Li(str(x)) for x in status.uploaded_files])
+    return html.Ul([html.Li(str(x)) for x in status["uploaded_files"]])
 
 
 if __name__ == "__main__":

@@ -12,7 +12,7 @@ from dash.dependencies import Output
 
 app = dash.Dash(__name__)
 
-UPLOAD_FOLDER_ROOT = r"C:\tmp\Uploads"
+UPLOAD_FOLDER_ROOT = R"C:\tmp\Uploads"
 du.configure_upload(app, UPLOAD_FOLDER_ROOT)
 
 
@@ -67,7 +67,7 @@ app.layout = get_app_layout
 )
 def callback_on_completion(status: du.UploadStatus):
     print(status)
-    return html.Ul([html.Li(str(x)) for x in status.uploaded_files])
+    return html.Ul([html.Li(str(x)) for x in status["uploaded_files"]])
 
 
 if __name__ == "__main__":
