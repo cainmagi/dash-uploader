@@ -24,6 +24,7 @@ def get_upload_component(id):
         id=id,
         text="Drag and Drop files here",
         text_completed="Completed: ",
+        enable_resumable=False,
         cancel_button=True,
         pause_button=True,
         max_file_size=130,  # 130 Mb
@@ -73,4 +74,4 @@ def callback_on_completion(status: du.UploadStatus):
 
 
 if __name__ == "__main__":
-    app.run_server(debug=True)
+    app.run(debug=True)

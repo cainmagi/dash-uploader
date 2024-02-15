@@ -44,7 +44,7 @@ class GenericRequestHandler(Protocol):
 
 
 class RequestData:
-    # A helper class that contains data from the request
+    # A helper class that contains data from the GET request
     # parsed into handier form.
 
     def __init__(self, request: flask.Request) -> None:
@@ -55,25 +55,31 @@ class RequestData:
             The Flask request object
         """
         # Available fields: https://github.com/flowjs/flow.js
-        self.n_chunks_total = request.form.get("flowTotalChunks", type=int)
-        self.chunk_number = request.form.get("flowChunkNumber", default=1, type=int)
-        self.filename = request.form.get("flowFilename", default="error", type=str)
+        if request.method == "POST":
+            data = request.form
+        else:
+            data = request.args
+
+        self.n_chunks_total = data.get("flowTotalChunks", type=int)
+        self.chunk_number = data.get("flowChunkNumber", default=1, type=int)
+        self.filename = data.get("flowFilename", default="error", type=str)
         # 'unique' identifier for the file that is being uploaded.
         # Made of the file size and file name (with relative path, if available)
-        self.unique_identifier = request.form.get(
-            "flowIdentifier", default="error", type=str
-        )
+        self.unique_identifier = data.get("flowIdentifier", default="error", type=str)
         # flowRelativePath is the flowFilename with the directory structure included
         # the path is relative to the chosen folder.
-        self.relative_path = request.form.get("flowRelativePath", default="", type=str)
+        self.relative_path = data.get("flowRelativePath", default="", type=str)
         if not self.relative_path:
             self.relative_path = self.filename
 
         # Get the chunk data.
         # Type of `chunk_data`: werkzeug.datastructures.FileStorage
-        self.chunk_data = request.files["file"]
+        if request.method == "POST":
+            self.chunk_data = request.files["file"]
+        else:
+            self.chunk_data = None
 
-        self.upload_id = request.form.get("upload_id", default="", type=str)
+        self.upload_id = data.get("upload_id", default="", type=str)
 
 
 class BaseHttpRequestHandler:
@@ -112,6 +118,9 @@ class BaseHttpRequestHandler:
     def _post(self):
 
         r = RequestData(request)
+
+        if r.chunk_data is None:
+            abort(500, "The provided request does not contain data.")
 
         # make our temp directory
         upload_session_root = self.get_upload_session_root(r.upload_id)
@@ -222,7 +231,7 @@ class BaseHttpRequestHandler:
         else:
             # Let flow.js know this chunk does not exists
             # and needs to be uploaded
-            abort(404, "Not found")
+            return flask.make_response("Not found (need resume)", 206)
 
     def get_upload_session_root(self, upload_id):
         return (

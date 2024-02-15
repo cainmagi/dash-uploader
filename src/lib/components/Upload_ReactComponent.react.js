@@ -85,7 +85,7 @@ export default class Upload_ReactComponent extends Component {
             // testChunks Make a GET request to the server for each chunks to see if it already exists. 
             //  If implemented on the server-side, this will allow for upload resumes even after a browser
             //  crash or even a computer restart. (Default: true) 
-            testChunks: false,
+            testChunks: this.props.enableResumable,
         });
 
 
@@ -632,6 +632,11 @@ Upload_ReactComponent.propTypes = {
     filetypes: PropTypes.arrayOf(PropTypes.string),
 
     /**
+     * Whether or not to enable resumable upload features.
+     */
+    enableResumable: PropTypes.bool,
+
+    /**
      * Whether or not to have a start button
      */
     startButton: PropTypes.bool,
@@ -718,6 +723,7 @@ Upload_ReactComponent.defaultProps = {
     completedMessage: 'Complete! ',
     uploadedFileNames: [],
     filetypes: undefined,
+    enableResumable: false,
     startButton: true,
     pauseButton: true,
     cancelButton: true,

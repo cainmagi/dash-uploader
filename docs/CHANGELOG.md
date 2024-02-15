@@ -4,6 +4,17 @@
 
 This version is developed internally for RDash.
 
+### Update 4 (2024-02-14)
+
+#### Added
+
+- Make the dash-uploader able to accept resumable uploading. Provide an option
+  `enable_resumable` to configure this feature.
+
+#### Fixed
+
+- Fix a severe bug that causing the `HTTP/GET` method unable to fetch any parameter.
+
 ### Update 3 (2024-02-13)
 
 #### Added

@@ -1,4 +1,5 @@
 import uuid
+import inspect
 import itertools
 
 from typing import Union, Optional, Any, TypeVar
@@ -81,6 +82,7 @@ def Upload(
     text: str = "Drag and Drop Here to upload!",
     text_completed: str = "Uploaded: ",
     text_disabled: str = "The uploader is disabled.",
+    enable_resumable: bool = False,
     cancel_button: bool = True,
     pause_button: bool = False,
     disabled: bool = False,
@@ -110,6 +112,10 @@ def Upload(
     text_disabled: str
         The text to show in the upload area when the
         the component is disabled.
+    enable_resumable: bool
+        If True, enable the resumable uploading feature.
+        If the dash_uploader JS backend does not support this feature,
+        this option will be ignored.
     cancel_button: bool
         If True, shows a cancel button.
     pause_button: bool
@@ -210,5 +216,10 @@ def Upload(
 
     if filetypes:
         arguments["filetypes"] = filetypes
+
+    # To ensure compatibility with original dash-uploader.
+    sig = inspect.signature(Upload_ReactComponent)
+    if "enableResumable" in sig.parameters:
+        arguments["enableResumable"] = enable_resumable
 
     return Upload_ReactComponent(**arguments)
