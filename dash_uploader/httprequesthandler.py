@@ -44,7 +44,7 @@ class GenericRequestHandler(Protocol):
 
 
 class RequestData:
-    # A helper class that contains data from the GET request
+    # A helper class that contains data from the request
     # parsed into handier form.
 
     def __init__(self, request: flask.Request) -> None:
